@@ -33,7 +33,6 @@ class User(db.Model, UserMixin):
     
     # Relationships
     progress = db.relationship('UserProgress', backref='user', lazy=True)
-    quizzes = db.relationship('Quiz', backref='user', lazy=True)
 
     def __repr__(self):
         return f"<User {self.username}, Role {self.role.name}>"
@@ -61,32 +60,39 @@ class Word(db.Model):
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
 
     # Relationships
-    quizzes = db.relationship('Quiz', backref='word', lazy=True)
     progress = db.relationship('UserProgress', backref='word', lazy=True)
 
     def __repr__(self):
         return f"<Word {self.mongolian} - {self.english}>"
 
-class Quiz(db.Model):
-    __tablename__ = 'quizzes'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    word_id = db.Column(db.Integer, db.ForeignKey('words.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    options = db.Column(db.Text, nullable=False)  # Stored as JSON string
-    correct_option = db.Column(db.String(200), nullable=False)
+class Test(db.Model):
+    __tablename__ = 'tests'
+    test_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    is_sample = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=db.func.now())
-
-    def set_options(self, options_list):
-        """Convert list of options to JSON string for storage"""
-        self.options = json.dumps(options_list)
-
-    def get_options(self):
-        """Convert stored JSON string back to list"""
-        return json.loads(self.options)
+    
+    # Relationship with questions
+    questions = db.relationship('Question', backref='test', lazy=True)
 
     def __repr__(self):
-        return f"<Quiz {self.id} for Word {self.word_id}>"
+        return f"<Test {self.title}>"
+
+class Question(db.Model):
+    __tablename__ = 'questions'
+    question_id = db.Column(db.Integer, primary_key=True)
+    test_id = db.Column(db.Integer, db.ForeignKey('tests.test_id'), nullable=False)
+    question_text = db.Column(db.String(1700), nullable=False)
+    option_a = db.Column(db.String(1200), nullable=False)
+    option_b = db.Column(db.String(1200), nullable=False)
+    option_c = db.Column(db.String(1200), nullable=False)
+    option_d = db.Column(db.String(1200), nullable=False)
+    option_e = db.Column(db.String(1200), nullable=False)
+    correct_answer = db.Column(db.String(1), nullable=False)
+    explanation = db.Column(db.String(5500), nullable=False)
+
+    def __repr__(self):
+        return f"<Question {self.question_id} for Test {self.test_id}>"
 
 class UserProgress(db.Model):
     __tablename__ = 'user_progress'
