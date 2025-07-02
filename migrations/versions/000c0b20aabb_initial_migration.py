@@ -51,19 +51,6 @@ def upgrade():
     sa.ForeignKeyConstraint(['word_id'], ['words.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('user_progress',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('word_id', sa.Integer(), nullable=False),
-    sa.Column('quiz_score', sa.Integer(), nullable=True),
-    sa.Column('last_seen', sa.DateTime(), nullable=True),
-    sa.Column('favorite', sa.Boolean(), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['word_id'], ['words.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.drop_table('vocabulary')
     op.drop_table('config')
     # ### end Alembic commands ###
@@ -86,7 +73,6 @@ def downgrade():
     sa.Column('updated_at', sa.DATETIME(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.drop_table('user_progress')
     op.drop_table('quizzes')
     op.drop_table('words')
     op.drop_table('configs')

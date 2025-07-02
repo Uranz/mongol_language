@@ -8,7 +8,7 @@ from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from db import db
-from db.models import User, Role, Config, Word, Test, Question, UserProgress
+from db.models import User, Role, Config, Word, Test, Question, Lesson, LessonProgress
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -62,23 +62,22 @@ class QuestionAdminView(ModelView):
     def is_accessible(self):
         return current_user.is_authenticated and getattr(current_user.role, 'name', None) == 'admin'
 
-class UserProgressAdminView(ModelView):
-    column_list = ['user_id', 'word_id', 'quiz_score', 'last_seen', 'favorite']
-    column_searchable_list = ['user_id', 'word_id']
-    column_filters = ['favorite', 'quiz_score']
-    
-    def is_accessible(self):
-        return current_user.is_authenticated and getattr(current_user.role, 'name', None) == 'admin'
+class UserAdminView(ModelView):
+    form_columns = [
+        'is_paid', 'username', 'email', 'password', 'role_id', 'created_at', 'updated_at',
+        'fluency_level', 'score', 'is_admin', 'last_active', 'avatar_url'
+    ]
 
 # Admin setup
 admin = Admin(app, name='Admin Panel', template_mode='bootstrap4')
-admin.add_view(ModelView(User, db.session))
+admin.add_view(UserAdminView(User, db.session))
 admin.add_view(ModelView(Role, db.session))
 admin.add_view(ModelView(Config, db.session))
-admin.add_view(WordAdminView(Word, db.session))
-admin.add_view(TestAdminView(Test, db.session))
-admin.add_view(QuestionAdminView(Question, db.session))
-admin.add_view(UserProgressAdminView(UserProgress, db.session))
+admin.add_view(ModelView(Word, db.session, endpoint='admin_word'))
+admin.add_view(ModelView(Test, db.session, endpoint='admin_test'))
+admin.add_view(ModelView(Question, db.session, endpoint='admin_question'))
+admin.add_view(ModelView(Lesson, db.session, endpoint='admin_lesson'))
+admin.add_view(ModelView(LessonProgress, db.session, endpoint='admin_lessonprogress'))
 
 # Register blueprints
 from routes.test_routes import test_bp

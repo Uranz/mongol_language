@@ -30,10 +30,12 @@ class User(db.Model, UserMixin):
     role = db.relationship('Role', backref=db.backref('users', lazy=True))
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+    fluency_level = db.Column(db.String(20), nullable=False, default='Beginner')
+    score = db.Column(db.Integer, nullable=False, default=0)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
+    last_active = db.Column(db.DateTime, nullable=True)
+    avatar_url = db.Column(db.String(255), nullable=True)
     
-    # Relationships
-    progress = db.relationship('UserProgress', backref='user', lazy=True)
-
     def __repr__(self):
         return f"<User {self.username}, Role {self.role.name}>"
 
@@ -58,9 +60,6 @@ class Word(db.Model):
     category = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, default=db.func.now())
     updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
-
-    # Relationships
-    progress = db.relationship('UserProgress', backref='word', lazy=True)
 
     def __repr__(self):
         return f"<Word {self.mongolian} - {self.english}>"
@@ -94,21 +93,6 @@ class Question(db.Model):
     def __repr__(self):
         return f"<Question {self.question_id} for Test {self.test_id}>"
 
-class UserProgress(db.Model):
-    __tablename__ = 'user_progress'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    word_id = db.Column(db.Integer, db.ForeignKey('words.id'), nullable=False)
-    quiz_score = db.Column(db.Integer, default=0)
-    last_seen = db.Column(db.DateTime, default=db.func.now())
-    favorite = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=db.func.now())
-    updated_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
-
-    def __repr__(self):
-        return f"<UserProgress {self.user_id} - Word {self.word_id}>"
-
 class Config(db.Model):
     __tablename__ = 'configs'
 
@@ -120,3 +104,34 @@ class Config(db.Model):
 
     def __repr__(self):
         return f"<Config {self.key}>"
+
+class Lesson(db.Model):
+    __tablename__ = 'lessons'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.String(100), nullable=False)
+    level = db.Column(db.String(20), nullable=False)  # e.g., Beginner, Intermediate, Advanced
+    lesson_type = db.Column(db.String(50), nullable=False)  # e.g., flashcard, grammar, quiz
+    content = db.Column(db.Text, nullable=False)  # Markdown or HTML
+    audio_url = db.Column(db.String(255), nullable=True)  # Optional audio file URL
+
+    def __repr__(self):
+        return f"<Lesson {self.title} ({self.level})>"
+
+class LessonProgress(db.Model):
+    __tablename__ = 'lesson_progress'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # Unique progress record
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # References the user
+    lesson_id = db.Column(db.Integer, db.ForeignKey('lessons.id'), nullable=False)  # References the lesson
+    is_completed = db.Column(db.Boolean, default=False, nullable=False)  # True if user finished the lesson
+    score = db.Column(db.Integer, default=0, nullable=False)  # Quiz score or performance
+    time_spent = db.Column(db.Integer, nullable=True)  # Time spent on lesson (seconds)
+    last_accessed = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now(), nullable=False)  # Last time user accessed the lesson
+
+    # Relationships
+    user = db.relationship('User', backref=db.backref('lesson_progress', lazy=True))  # Link to User
+    lesson = db.relationship('Lesson', backref=db.backref('progress', lazy=True))  # Link to Lesson
+
+    def __repr__(self):
+        return f"<LessonProgress user_id={self.user_id} lesson_id={self.lesson_id} completed={self.is_completed}>"
