@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 import json
 from datetime import datetime
+from sqlalchemy import event
 
 # Assuming db will be initialized in the main app and imported here
 from db import db
@@ -135,3 +136,70 @@ class LessonProgress(db.Model):
 
     def __repr__(self):
         return f"<LessonProgress user_id={self.user_id} lesson_id={self.lesson_id} completed={self.is_completed}>"
+
+def create_questions_for_new_word(mapper, connection, target):
+    from db.models import Word, Question, Test
+    import random
+    from db import db
+
+    # Ensure there are at least 4 words for distractors
+    words = Word.query.all()
+    if len(words) < 4:
+        return
+
+    # Get or create a test
+    test = Test.query.first()
+    if not test:
+        test = Test(title="Auto-generated Vocabulary Test", is_sample=True)
+        db.session.add(test)
+        db.session.commit()
+
+    # --- Multiple-choice translation question ---
+    distractors = [w.english for w in Word.query.filter(Word.id != target.id).order_by(db.func.random()).limit(3)]
+    options = distractors + [target.english]
+    random.shuffle(options)
+    correct_answer = chr(options.index(target.english) + ord('A'))
+    q_text = f"What is the English translation of '{target.mongolian}'?"
+    existing = Question.query.filter_by(test_id=test.test_id, question_text=q_text).first()
+    if not existing:
+        q = Question(
+            test_id=test.test_id,
+            question_text=q_text,
+            option_a=options[0],
+            option_b=options[1],
+            option_c=options[2],
+            option_d=options[3],
+            option_e="",
+            correct_answer=correct_answer,
+            explanation=f"'{target.mongolian}' means '{target.english}'."
+        )
+        db.session.add(q)
+        db.session.commit()
+
+    # --- Fill-in-the-blank question (if example_sentence exists and contains the word) ---
+    if target.example_sentence and target.mongolian in target.example_sentence:
+        blank_sentence = target.example_sentence.replace(target.mongolian, "___", 1)
+        distractors = [w.mongolian for w in Word.query.filter(Word.id != target.id).order_by(db.func.random()).limit(3)]
+        options = distractors + [target.mongolian]
+        random.shuffle(options)
+        correct_answer = chr(options.index(target.mongolian) + ord('A'))
+        existing_blank = Question.query.filter_by(test_id=test.test_id, question_text=blank_sentence).first()
+        if not existing_blank:
+            q_blank = Question(
+                test_id=test.test_id,
+                question_text=blank_sentence,
+                option_a=options[0],
+                option_b=options[1],
+                option_c=options[2],
+                option_d=options[3],
+                option_e="",
+                correct_answer=correct_answer,
+                explanation=f"The correct word is '{target.mongolian}'."
+            )
+            db.session.add(q_blank)
+            db.session.commit()
+
+# Register the event listener for after_insert on Word
+from db.models import Word
+
+event.listen(Word, 'after_insert', create_questions_for_new_word)
