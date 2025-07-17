@@ -25,9 +25,18 @@
                         {{ result.user_answer }}
                     </span>
                     {% if not result.is_correct %}
-                    <span class="badge bg-success ms-2">
-                        Correct Answer: {{ result.question.correct_answer }}
-                    </span>
+                        {% if result.correct_answers %}
+                            <div class="mt-2">
+                                <strong>Correct Answers:</strong>
+                                {% for answer in result.correct_answers %}
+                                    <span class="badge bg-success me-1">{{ answer }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span class="badge bg-success ms-2">
+                                Correct Answer: {{ result.question.correct_answer_text or result.question.correct_answer }}
+                            </span>
+                        {% endif %}
                     {% endif %}
                 </div>
                 

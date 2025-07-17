@@ -16,36 +16,57 @@
                     <h5 class="card-title">Question {{ loop.index }}</h5>
                     <p class="card-text">{{ question.question_text }}</p>
                     
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="A" id="q{{ question.question_id }}_a" required>
-                        <label class="form-check-label" for="q{{ question.question_id }}_a">
-                            A) {{ question.option_a }}
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="B" id="q{{ question.question_id }}_b">
-                        <label class="form-check-label" for="q{{ question.question_id }}_b">
-                            B) {{ question.option_b }}
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="C" id="q{{ question.question_id }}_c">
-                        <label class="form-check-label" for="q{{ question.question_id }}_c">
-                            C) {{ question.option_c }}
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="D" id="q{{ question.question_id }}_d">
-                        <label class="form-check-label" for="q{{ question.question_id }}_d">
-                            D) {{ question.option_d }}
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="E" id="q{{ question.question_id }}_e">
-                        <label class="form-check-label" for="q{{ question.question_id }}_e">
-                            E) {{ question.option_e }}
-                        </label>
-                    </div>
+                    {% if question.question_type == 'translation' %}
+                        <!-- Translation question - text input -->
+                        <div class="mb-3">
+                            <label for="question_{{ question.question_id }}" class="form-label">Your answer:</label>
+                            <input type="text" class="form-control" id="question_{{ question.question_id }}" 
+                                   name="question_{{ question.question_id }}" required 
+                                   placeholder="Type your translation here...">
+                        </div>
+                    {% else %}
+                        <!-- MCQ question - radio buttons -->
+                        {% if question.option_a %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="A" id="q{{ question.question_id }}_a" required>
+                            <label class="form-check-label" for="q{{ question.question_id }}_a">
+                                A) {{ question.option_a }}
+                            </label>
+                        </div>
+                        {% endif %}
+                        {% if question.option_b %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="B" id="q{{ question.question_id }}_b">
+                            <label class="form-check-label" for="q{{ question.question_id }}_b">
+                                B) {{ question.option_b }}
+                            </label>
+                        </div>
+                        {% endif %}
+                        {% if question.option_c %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="C" id="q{{ question.question_id }}_c">
+                            <label class="form-check-label" for="q{{ question.question_id }}_c">
+                                C) {{ question.option_c }}
+                            </label>
+                        </div>
+                        {% endif %}
+                        {% if question.option_d %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="D" id="q{{ question.question_id }}_d">
+                            <label class="form-check-label" for="q{{ question.question_id }}_d">
+                                D) {{ question.option_d }}
+                            </label>
+                        </div>
+                        {% endif %}
+                        {% if question.option_e %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="question_{{ question.question_id }}" value="E" id="q{{ question.question_id }}_e">
+                            <label class="form-check-label" for="q{{ question.question_id }}_e">
+                                E) {{ question.option_e }}
+                            </label>
+                        </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

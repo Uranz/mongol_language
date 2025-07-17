@@ -8,7 +8,7 @@ from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect
 from db import db
-from db.models import User, Role, Config, Word, Test, Question, Lesson, LessonProgress
+from db.models import User, Role, Config, Word, Test, Question, Lesson
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -54,10 +54,8 @@ class TestAdminView(ModelView):
         return current_user.is_authenticated and getattr(current_user.role, 'name', None) == 'admin'
 
 class QuestionAdminView(ModelView):
-    column_list = ['test_id', 'question_text', 'correct_answer']
-    column_searchable_list = ['question_text']
-    form_columns = ['test_id', 'question_text', 'option_a', 'option_b', 'option_c', 
-                   'option_d', 'option_e', 'correct_answer', 'explanation']
+    column_list = ['question_id', 'test_id', 'question_text']
+    form_columns = ['test_id', 'question_text']
     
     def is_accessible(self):
         return current_user.is_authenticated and getattr(current_user.role, 'name', None) == 'admin'
@@ -77,7 +75,6 @@ admin.add_view(ModelView(Word, db.session, endpoint='admin_word'))
 admin.add_view(ModelView(Test, db.session, endpoint='admin_test'))
 admin.add_view(ModelView(Question, db.session, endpoint='admin_question'))
 admin.add_view(ModelView(Lesson, db.session, endpoint='admin_lesson'))
-admin.add_view(ModelView(LessonProgress, db.session, endpoint='admin_lessonprogress'))
 
 # Register blueprints
 from routes.test_routes import test_bp
