@@ -25,3 +25,8 @@ def lesson_view(lesson_id):
     
     rendered_content = Template(lesson.content).render(words=words)
     return render_template('lesson.html', lesson=lesson, rendered_content=Markup(rendered_content)) 
+
+@main_bp.route('/lessons')
+def lessons_list():
+    lessons = Lesson.query.all()
+    return render_template('lessons/list.html', lessons=lessons) 
